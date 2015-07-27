@@ -52,6 +52,7 @@ public class LoadURL implements MessageListener {
 			jmsContext.createProducer().send(replyToQueue, url);
 			
 			Queue sendToQueue = (Queue)initialContext.lookup("StorePageQueue");
+			// Invio alla coda
 			jmsContext.createProducer().send(sendToQueue, new MyMessage(url));
 			
 		} catch (JMSException e) {

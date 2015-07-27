@@ -63,7 +63,7 @@ public class ModifyPage implements MessageListener {
 		String content;
 		try {
 			content = new String(Files.readAllBytes(path));
-			for (int i = 0; i < originalUrl.size(); i++) {
+			for (int i = 0; i < localUrl.size(); i++) {
 				String imageLocalUrl = localUrl.get(i).replace("\\", "\\\\");
 				imageLocalUrl = ".\\\\" + imageLocalUrl.substring(imageLocalUrl.indexOf("images", 0));
 				System.out.println(i + ") Original URL: " + originalUrl.get(i));

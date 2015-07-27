@@ -22,15 +22,17 @@ import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 
 import common.MyMessage;
+import support.AmazonS3ws;
 import support.Support;
 
-public class DownloadImages implements MessageListener {
-	
+public class DownloadImages implements MessageListener {	
 	private static JMSContext jmsContext;
 	private static Context initialContext;
-	
+	private static AmazonS3ws myAWS;
 	
 	public static void main(String[] args) throws NamingException, IOException {
+		
+		myAWS = new AmazonS3ws();
 		
 		initialContext = Support.getContext();
 		DownloadImages server = new DownloadImages();
@@ -61,6 +63,7 @@ public class DownloadImages implements MessageListener {
 			System.out.println("Download end");
 			
 			Queue sendToQueue = (Queue) initialContext.lookup("ModifyPageQueue");
+			// Invio alla coda
 			jmsContext.createProducer().send(sendToQueue, new MyMessage(message.getUrlHtml(),
 					message.getPathHtml(),
 					images,
@@ -78,6 +81,7 @@ public class DownloadImages implements MessageListener {
 		List<String> imagePaths = new ArrayList<String>();
 		locPath = locPath.replace("\\index.html", "");
 		int count = 0;
+		//AmazonS3ws myAWS = new AmazonS3ws();
 		for (String image : images) {
 			//Open a URL Stream
 			Response resultImageResponse;
@@ -92,6 +96,8 @@ public class DownloadImages implements MessageListener {
 				out.write(resultImageResponse.bodyAsBytes());  // resultImageResponse.body() is where the image's contents are.
 				out.close();
 				imagePaths.add(destPath);
+				// Salvataggio delle immagini su S3
+				myAWS.uploadS3Img(locPath,nomeFile,destPath);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -100,7 +106,5 @@ public class DownloadImages implements MessageListener {
 		return imagePaths;
 		
 	}
-	
-	
 
 }

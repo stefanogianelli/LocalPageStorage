@@ -59,6 +59,7 @@ public class ParsePage implements MessageListener {
 			System.out.println("Parsing end");
 			
 			Queue sendToQueue = (Queue) initialContext.lookup("DownloadImagesQueue");
+			// Invio alla coda
 			jmsContext.createProducer().send(sendToQueue, new MyMessage(message.getUrlHtml(),
 					message.getPathHtml(),
 					images));

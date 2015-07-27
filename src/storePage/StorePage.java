@@ -21,15 +21,18 @@ import common.MyMessage;
 
 import java.io.*;
 
+import support.AmazonS3ws;
 import support.Support;
 
-public class StorePage implements MessageListener {
-	
+public class StorePage implements MessageListener {	
 	private static JMSContext jmsContext;
-	private static Context initialContext;	
+	private static Context initialContext;
+	private static AmazonS3ws myAWS;
 
 	public static void main(String[] args) throws NamingException, IOException {
 		
+		myAWS = new AmazonS3ws();
+
 		initialContext = Support.getContext();
 		StorePage server = new StorePage();
 		
@@ -56,7 +59,10 @@ public class StorePage implements MessageListener {
 			System.out.println("Page stored successfully");
 						
 			Queue sendToQueue = (Queue) initialContext.lookup("ParsePageQueue");
+
+			// Invio alla coda
 			jmsContext.createProducer().send(sendToQueue, new MyMessage(message.getUrlHtml(), path));
+			
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -95,6 +101,10 @@ public class StorePage implements MessageListener {
 			fop.write(contentInBytes);
 			fop.flush();
 			fop.close();
+			
+			// Salvataggio della directory su S3
+			myAWS.uploadS3File(newPath.replace("\\index.html",""));		
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -107,5 +117,6 @@ public class StorePage implements MessageListener {
 		path = path.replace("?", "");
 		return path;
 	}
+	
 
 }
