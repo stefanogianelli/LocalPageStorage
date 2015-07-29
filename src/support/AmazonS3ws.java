@@ -13,16 +13,15 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 public class AmazonS3ws {
 	
-	String bucketName;	
-	AWSCredentials credentials;
-	AmazonS3 s3client;
+	//private static final String bucketName = "stefanotestamazon";
+	private static final String bucketName = "localpagestorageaspoli";
 	
+	private AmazonS3 s3client;	
 	
-	public AmazonS3ws(){
-		super();
-		this.bucketName = "localpagestorageaspoli";
+	public AmazonS3ws() {
+		AWSCredentials credentials = null;
 		try {
-            this.credentials = new ProfileCredentialsProvider().getCredentials();
+            credentials = new ProfileCredentialsProvider().getCredentials();
         } catch (Exception e) {
             throw new AmazonClientException(
                     "Cannot load the credentials from the credential profiles file. " +
@@ -30,8 +29,7 @@ public class AmazonS3ws {
                     "location (~/.aws/credentials), and is in valid format.",
                     e);
         }
-		this.s3client = new AmazonS3Client(credentials);
-		
+		this.s3client = new AmazonS3Client(credentials);		
 	}
 
     public void uploadS3File(String pathIndexSito){

@@ -16,29 +16,32 @@ import common.MyMessage;
 
 import support.Support;
 
-
-public class LoadURL implements MessageListener {
+public class LoadURL extends Thread implements MessageListener {
 	
-	static JMSContext jmsContext;
-	private static Context initialContext;	
-
-	public static void main(String[] args) throws NamingException, IOException {
-		
-		initialContext = Support.getContext();
-		LoadURL server = new LoadURL();
-		
-		ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
-		Queue queueCurr = (Queue)initialContext.lookup("LoadURLQueue");
-		
-		jmsContext = cf.createContext();
-		jmsContext.createConsumer(queueCurr).setMessageListener(server);
-		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("LoadURL: Waiting for messages...");
-		System.out.println("LoadURL: input 'exit' to close");
-		
-		bufferedReader.readLine();
-
+	private JMSContext jmsContext;
+	private Context initialContext;
+	
+	@Override
+	public void run () {
+		try {
+			initialContext = Support.getContext();
+			
+			ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
+			Queue queueCurr = (Queue)initialContext.lookup("LoadURLQueue");
+			
+			jmsContext = cf.createContext();
+			jmsContext.createConsumer(queueCurr).setMessageListener(this);
+			
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("LoadURL: Waiting for messages...");
+			System.out.println("LoadURL: input 'exit' to close");
+			
+			bufferedReader.readLine();
+		} catch (NamingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

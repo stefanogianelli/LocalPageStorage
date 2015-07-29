@@ -24,29 +24,34 @@ import java.io.*;
 import support.AmazonS3ws;
 import support.Support;
 
-public class StorePage implements MessageListener {	
-	private static JMSContext jmsContext;
-	private static Context initialContext;
-	private static AmazonS3ws myAWS;
+public class StorePage extends Thread implements MessageListener {	
+	private JMSContext jmsContext;
+	private Context initialContext;
+	private AmazonS3ws myAWS;
+	
+	@Override
+	public void run () {
+		try {
+			myAWS = new AmazonS3ws();
 
-	public static void main(String[] args) throws NamingException, IOException {
-		
-		myAWS = new AmazonS3ws();
-
-		initialContext = Support.getContext();
-		StorePage server = new StorePage();
-		
-		ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
-		Queue queueCurr = (Queue)initialContext.lookup("StorePageQueue");
-		
-		jmsContext = cf.createContext();
-		jmsContext.createConsumer(queueCurr).setMessageListener(server);
-		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("StorePage: Waiting for url...");
-		System.out.println("StorePage: input 'exit' to close");
-		
-		bufferedReader.readLine();
+			initialContext = Support.getContext();
+			
+			ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
+			Queue queueCurr = (Queue)initialContext.lookup("StorePageQueue");
+			
+			jmsContext = cf.createContext();
+			jmsContext.createConsumer(queueCurr).setMessageListener(this);
+			
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("StorePage: Waiting for url...");
+			System.out.println("StorePage: input 'exit' to close");
+			
+			bufferedReader.readLine();
+		} catch (NamingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
