@@ -25,30 +25,34 @@ import common.MyMessage;
 import support.AmazonS3ws;
 import support.Support;
 
-public class DownloadImages implements MessageListener {	
-	private static JMSContext jmsContext;
-	private static Context initialContext;
-	private static AmazonS3ws myAWS;
+public class DownloadImages extends Thread implements MessageListener {	
+	private JMSContext jmsContext;
+	private Context initialContext;
+	private AmazonS3ws myAWS;
 	
-	public static void main(String[] args) throws NamingException, IOException {
-		
-		myAWS = new AmazonS3ws();
-		
-		initialContext = Support.getContext();
-		DownloadImages server = new DownloadImages();
-		
-		ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
-		Queue queueCurr = (Queue)initialContext.lookup("DownloadImagesQueue");
-		
-		jmsContext = cf.createContext();
-		jmsContext.createConsumer(queueCurr).setMessageListener(server);
-		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("DownloadImages: Waiting for url...");
-		System.out.println("DownloadImages: input 'exit' to close");
-		
-		bufferedReader.readLine();
-		
+	@Override
+	public void run () {
+		try {
+			myAWS = new AmazonS3ws();
+			
+			initialContext = Support.getContext();
+			
+			ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
+			Queue queueCurr = (Queue)initialContext.lookup("DownloadImagesQueue");
+			
+			jmsContext = cf.createContext();
+			jmsContext.createConsumer(queueCurr).setMessageListener(this);
+			
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("DownloadImages: Waiting for url...");
+			System.out.println("DownloadImages: input 'exit' to close");
+			
+			bufferedReader.readLine();
+		} catch (NamingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -77,7 +81,7 @@ public class DownloadImages implements MessageListener {
 		}		
 	}
 	
-	private static List<String> downloadImages(List<String> images, String locPath){
+	private List<String> downloadImages(List<String> images, String locPath){
 		List<String> imagePaths = new ArrayList<String>();
 		locPath = locPath.replace("\\index.html", "");
 		int count = 0;
@@ -88,7 +92,8 @@ public class DownloadImages implements MessageListener {
 			try {
 				resultImageResponse = Jsoup.connect(image).ignoreContentType(true).execute();
 				String nomeFile = image.substring(image.lastIndexOf("/") + 1);
-				String destPath = locPath + "\\images\\" + count++ + "_" + nomeFile;
+				String nomeFileUnivoco = count++ + "_" + nomeFile;
+				String destPath = locPath + "\\images\\" + nomeFileUnivoco;
 				File filePath = new File(destPath);
 				filePath.getParentFile().mkdirs();
 				// output here
@@ -97,7 +102,7 @@ public class DownloadImages implements MessageListener {
 				out.close();
 				imagePaths.add(destPath);
 				// Salvataggio delle immagini su S3
-				myAWS.uploadS3Img(locPath,nomeFile,destPath);
+				myAWS.uploadS3Img(locPath,nomeFileUnivoco,destPath);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

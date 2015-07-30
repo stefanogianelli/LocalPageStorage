@@ -18,31 +18,38 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 
 import common.MyMessage;
+import support.AmazonS3ws;
 import support.Support;
 
-public class ModifyPage implements MessageListener {
+public class ModifyPage extends Thread implements MessageListener {
 	
-	private static JMSContext jmsContext;
-	private static Context initialContext;
+	private JMSContext jmsContext;
+	private Context initialContext;
+	private AmazonS3ws myAWS;
 	
-	
-	public static void main(String[] args) throws NamingException, IOException {
-		
-		initialContext = Support.getContext();
-		ModifyPage server = new ModifyPage();
-		
-		ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
-		Queue queueCurr = (Queue)initialContext.lookup("ModifyPageQueue");
-		
-		jmsContext = cf.createContext();
-		jmsContext.createConsumer(queueCurr).setMessageListener(server);
-		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("ModifyPage: Waiting for url...");
-		System.out.println("ModifyPage: input 'exit' to close");
-		
-		bufferedReader.readLine();
-
+	@Override
+	public void run () {
+		try {
+			myAWS = new AmazonS3ws();
+			
+			initialContext = Support.getContext();
+			
+			ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
+			Queue queueCurr = (Queue)initialContext.lookup("ModifyPageQueue");
+			
+			jmsContext = cf.createContext();
+			jmsContext.createConsumer(queueCurr).setMessageListener(this);
+			
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("ModifyPage: Waiting for url...");
+			System.out.println("ModifyPage: input 'exit' to close");
+			
+			bufferedReader.readLine();	
+		} catch (NamingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -52,20 +59,25 @@ public class ModifyPage implements MessageListener {
 			System.out.println("ModifyPage: Received -> url(" + message.toString() + ") ");
 			System.out.println("Starting modify page ...");
 			modifyPage(message.getPathHtml(), message.getUrlImage(), message.getPathImage());
-			System.out.println("Page modified successfully");
+			
+			// Salvataggio della directory su S3
+			myAWS.uploadS3File(message.getPathHtml().replace("\\index.html",""));
+			
+			System.out.println("Page " + message.getUrlHtml() + " modified successfully");
+			
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}	
 	}	
 	
-	public void modifyPage (String filePath, List<String> originalUrl, List<String> localUrl) {
+	private void modifyPage (String filePath, List<String> originalUrl, List<String> localUrl) {
 		Path path = Paths.get(filePath);
 		String content;
 		try {
 			content = new String(Files.readAllBytes(path));
 			for (int i = 0; i < localUrl.size(); i++) {
-				String imageLocalUrl = localUrl.get(i).replace("\\", "\\\\");
-				imageLocalUrl = ".\\\\" + imageLocalUrl.substring(imageLocalUrl.indexOf("images", 0));
+				String imageLocalUrl = localUrl.get(i).replace("\\", "/");
+				imageLocalUrl = "./" + imageLocalUrl.substring(imageLocalUrl.indexOf("images", 0));
 				System.out.println(i + ") Original URL: " + originalUrl.get(i));
 				System.out.println(i + ") Local URL: " + imageLocalUrl);
 				content = content.replaceAll(originalUrl.get(i), imageLocalUrl);

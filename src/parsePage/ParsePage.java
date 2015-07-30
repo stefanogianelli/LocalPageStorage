@@ -25,29 +25,34 @@ import org.jsoup.select.Elements;
 import common.MyMessage;
 import support.Support;
 
-public class ParsePage implements MessageListener {
+public class ParsePage extends Thread implements MessageListener {
 	
-	private static JMSContext jmsContext;
-	private static Context initialContext;
+	private JMSContext jmsContext;
+	private Context initialContext;
 	private List<String> validImagesFormat = new ArrayList<>(Arrays.asList("jpg", "jpeg", "gif", "png"));
 	
-	public static void main(String[] args) throws NamingException, IOException {
-		
-		initialContext = Support.getContext();
-		ParsePage server = new ParsePage();
-		
-		ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
-		Queue queueCurr = (Queue)initialContext.lookup("ParsePageQueue");
-		
-		jmsContext = cf.createContext();
-		jmsContext.createConsumer(queueCurr).setMessageListener(server);
-		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("ParsePage: Waiting for url...");
-		System.out.println("ParsePage: input 'exit' to close");
-		
-		bufferedReader.readLine();
-	}	
+	@Override
+	public void run () {
+		try {
+			initialContext = Support.getContext();
+			
+			ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
+			Queue queueCurr = (Queue)initialContext.lookup("ParsePageQueue");
+			
+			jmsContext = cf.createContext();
+			jmsContext.createConsumer(queueCurr).setMessageListener(this);
+			
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("ParsePage: Waiting for url...");
+			System.out.println("ParsePage: input 'exit' to close");
+			
+			bufferedReader.readLine();
+		} catch (NamingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	@Override
 	public void onMessage(Message msg) {		
@@ -72,7 +77,7 @@ public class ParsePage implements MessageListener {
 		}		
 	}
 	
-	public List<String> parsePage(String url){
+	private List<String> parsePage(String url){
 		List<String> images = new ArrayList<String>();
 		Document doc = null;
 		try {
