@@ -1,9 +1,7 @@
 package parsePage;
 
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,14 +40,8 @@ public class ParsePage extends Thread implements MessageListener {
 			jmsContext = cf.createContext();
 			jmsContext.createConsumer(queueCurr).setMessageListener(this);
 			
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("ParsePage: Waiting for url...");
-			System.out.println("ParsePage: input 'exit' to close");
-			
-			bufferedReader.readLine();
+			System.out.println("[TID: " + this.getId() + "] ParsePage: Waiting for url...");
 		} catch (NamingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -58,10 +50,10 @@ public class ParsePage extends Thread implements MessageListener {
 	public void onMessage(Message msg) {		
 		try {
 			MyMessage message = msg.getBody(MyMessage.class);	
-			System.out.println("ParsePage: Received -> url(" + message.toString() + ") ");
-			System.out.println("Starting parse ...");
+			System.out.println("[TID: " + this.getId() + "] ParsePage: Received -> url(" + message.toString() + ") ");
+			System.out.println("[TID: " + this.getId() + "] Starting parse ...");
 			List<String> images = parsePage(message.getUrlHtml());
-			System.out.println("Parsing end");
+			System.out.println("[TID: " + this.getId() + "] Parsing end");
 			
 			Queue sendToQueue = (Queue) initialContext.lookup("DownloadImagesQueue");
 			// Invio alla coda
@@ -69,12 +61,10 @@ public class ParsePage extends Thread implements MessageListener {
 					message.getPathHtml(),
 					images));
 		} catch (JMSException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NamingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}
 	}
 	
 	private List<String> parsePage(String url){
@@ -89,11 +79,11 @@ public class ParsePage extends Thread implements MessageListener {
 					if (path.lastIndexOf("?") != -1) {
 						path = path.substring(0, path.lastIndexOf("?"));
 					}
-					System.out.println("Found image: " + path);
+					//System.out.println("Found image: " + path);
 					String ext = path.substring(path.lastIndexOf(".") + 1);
 					if (!images.contains(path) && validImagesFormat.contains(ext.toLowerCase())) {
 						images.add(path);
-						System.out.println("--> Immagine Aggiunta");
+						//System.out.println("--> Immagine Aggiunta");
 					}
 				}
 			}

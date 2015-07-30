@@ -1,6 +1,7 @@
 package storePage;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.jms.ConnectionFactory;
@@ -18,9 +19,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import common.MyMessage;
-
-import java.io.*;
-
 import support.AmazonS3ws;
 import support.Support;
 
@@ -29,11 +27,13 @@ public class StorePage extends Thread implements MessageListener {
 	private Context initialContext;
 	private AmazonS3ws myAWS;
 	
+	public StorePage (AmazonS3ws aws) {
+		myAWS = aws;
+	}
+	
 	@Override
 	public void run () {
 		try {
-			myAWS = new AmazonS3ws();
-
 			initialContext = Support.getContext();
 			
 			ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
@@ -42,14 +42,8 @@ public class StorePage extends Thread implements MessageListener {
 			jmsContext = cf.createContext();
 			jmsContext.createConsumer(queueCurr).setMessageListener(this);
 			
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("StorePage: Waiting for url...");
-			System.out.println("StorePage: input 'exit' to close");
-			
-			bufferedReader.readLine();
+			System.out.println("[TID: " + this.getId() + "] StorePage: Waiting for url...");			
 		} catch (NamingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -58,23 +52,20 @@ public class StorePage extends Thread implements MessageListener {
 	public void onMessage(Message msg) {		
 		try {
 			MyMessage message = msg.getBody(MyMessage.class);
-			System.out.println("StorePage: Received -> url(" + message.toString() + ") ");
-			System.out.println("Starting page storing ...");
+			System.out.println("[TID: " + this.getId() + "] StorePage: Received -> url(" + message.toString() + ") ");
+			System.out.println("[TID: " + this.getId() + "] Starting page storing ...");
 			String path = storePage(message.getUrlHtml());	
-			System.out.println("Page stored successfully");
+			System.out.println("[TID: " + this.getId() + "] Page stored successfully");
 						
 			Queue sendToQueue = (Queue) initialContext.lookup("ParsePageQueue");
 
 			// Invio alla coda
-			jmsContext.createProducer().send(sendToQueue, new MyMessage(message.getUrlHtml(), path));
-			
+			jmsContext.createProducer().send(sendToQueue, new MyMessage(message.getUrlHtml(), path));			
 		} catch (JMSException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NamingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}
 	}
 	
 	private String storePage (String url) {
@@ -108,9 +99,8 @@ public class StorePage extends Thread implements MessageListener {
 			fop.close();
 			
 			// Salvataggio della directory su S3
-			myAWS.uploadS3File(newPath.replace("\\index.html",""));		
-			
-		} catch (IOException e) {
+			myAWS.uploadS3File(newPath.replace("\\index.html",""));			
+		} catch (IOException  e) {
 			e.printStackTrace();
 		}
 		

@@ -14,8 +14,6 @@ import javax.jms.Queue;
 import javax.naming.Context;
 import javax.naming.NamingException;
 
-import loadUrl.LoadURL;
-import storePage.StorePage;
 import support.Support;
 
 
@@ -26,12 +24,10 @@ public class Client implements MessageListener {
 	public static void main(String[] args) throws NamingException, IOException, JMSException {		
 		initialContext = Support.getContext();
 		
-		Client listener = new Client();
-		
+		Client listener = new Client();		
 		
 		ConnectionFactory cf = (ConnectionFactory)initialContext.lookup("java:comp/DefaultJMSConnectionFactory");
-		Queue queue01 = (Queue)initialContext.lookup("LoadURLQueue");
-		
+		Queue queue01 = (Queue)initialContext.lookup("LoadURLQueue");		
 		
 		JMSContext jmsContext = cf.createContext();
 		Queue queue02 = jmsContext.createTemporaryQueue();
@@ -39,8 +35,7 @@ public class Client implements MessageListener {
 		JMSProducer producer = jmsContext.createProducer();
 		producer.setJMSReplyTo(queue02);
 		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));		
 	
 		String url = null;
 		while (true) {
@@ -60,8 +55,7 @@ public class Client implements MessageListener {
 				System.out.println("Overload -> Creo una nuova istanza");
 				LoadURL.main(null);
 			}*/
-		}
-		
+		}		
 		
 	}
 	
@@ -70,7 +64,7 @@ public class Client implements MessageListener {
 		// TODO Auto-generated method stub
 		try {
 			String commMessage = msg.getBody(String.class);
-			System.out.println("CLIENT: Received -> url(+ " + commMessage+")");
+			System.out.println("CLIENT: Received -> url(" + commMessage+")");
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

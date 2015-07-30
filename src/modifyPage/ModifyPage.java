@@ -1,8 +1,6 @@
 package modifyPage;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,14 +34,8 @@ public class ModifyPage extends Thread implements MessageListener {
 			jmsContext = cf.createContext();
 			jmsContext.createConsumer(queueCurr).setMessageListener(this);
 			
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("ModifyPage: Waiting for url...");
-			System.out.println("ModifyPage: input 'exit' to close");
-			
-			bufferedReader.readLine();	
+			System.out.println("[TID: " + this.getId() + "] ModifyPage: Waiting for url...");
 		} catch (NamingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -52,13 +44,13 @@ public class ModifyPage extends Thread implements MessageListener {
 	public void onMessage(Message msg) {		
 		try {
 			MyMessage message = msg.getBody(MyMessage.class);	
-			System.out.println("ModifyPage: Received -> url(" + message.toString() + ") ");
-			System.out.println("Starting modify page ...");
+			System.out.println("[TID: " + this.getId() + "] ModifyPage: Received -> url(" + message.toString() + ") ");
+			System.out.println("[TID: " + this.getId() + "] Starting modify page ...");
 			modifyPage(message.getPathHtml(), message.getUrlImage(), message.getPathImage());
-			System.out.println("Page modified successfully");
+			System.out.println("[TID: " + this.getId() + "] Page modified successfully");
 		} catch (JMSException e) {
 			e.printStackTrace();
-		}	
+		}
 	}	
 	
 	private void modifyPage (String filePath, List<String> originalUrl, List<String> localUrl) {
@@ -67,10 +59,10 @@ public class ModifyPage extends Thread implements MessageListener {
 		try {
 			content = new String(Files.readAllBytes(path));
 			for (int i = 0; i < localUrl.size(); i++) {
-				String imageLocalUrl = localUrl.get(i).replace("\\", "\\\\");
-				imageLocalUrl = ".\\\\" + imageLocalUrl.substring(imageLocalUrl.indexOf("images", 0));
-				System.out.println(i + ") Original URL: " + originalUrl.get(i));
-				System.out.println(i + ") Local URL: " + imageLocalUrl);
+				String imageLocalUrl = localUrl.get(i).replace("\\", "/");
+				imageLocalUrl = "./" + imageLocalUrl.substring(imageLocalUrl.indexOf("images", 0));
+				//System.out.println(i + ") Original URL: " + originalUrl.get(i));
+				//System.out.println(i + ") Local URL: " + imageLocalUrl);
 				content = content.replaceAll(originalUrl.get(i), imageLocalUrl);
 			}			
 			Files.write(path, content.getBytes());
