@@ -62,10 +62,10 @@ public class Monitoring {
 		System.out.println("MONITOR: Loading components ...");
 		//create the base components
 		loadUrl[0] = new LoadURL();
-		storePage[0] = new StorePage(aws);
+		storePage[0] = new StorePage();
 		parsePage[0] = new ParsePage();
 		downloadImages[0] = new DownloadImages(aws);
-		modifyPage[0] = new ModifyPage();
+		modifyPage[0] = new ModifyPage(aws);
 		
 		executor.execute(loadUrl[0]);
 		executor.execute(storePage[0]);
@@ -113,7 +113,7 @@ public class Monitoring {
 				case 2:
 					if (storePage[1] == null) {
 						System.out.println("MONITOR: Create new StorePage component");
-						storePage[1] = new StorePage(aws);
+						storePage[1] = new StorePage();
 						executor.execute(storePage[1]);
 					}
 					break;
@@ -164,7 +164,7 @@ public class Monitoring {
 				case 2:
 					if (modifyPage[1] == null) {
 						System.out.println("MONITOR: Create new ModifyPage component");
-						modifyPage[1] = new ModifyPage();
+						modifyPage[1] = new ModifyPage(aws);
 						executor.execute(modifyPage[1]);
 					}
 					break;

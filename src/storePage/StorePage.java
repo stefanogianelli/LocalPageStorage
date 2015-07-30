@@ -19,17 +19,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import common.MyMessage;
-import support.AmazonS3ws;
 import support.Support;
 
 public class StorePage extends Thread implements MessageListener {	
 	private JMSContext jmsContext;
 	private Context initialContext;
-	private AmazonS3ws myAWS;
-	
-	public StorePage (AmazonS3ws aws) {
-		myAWS = aws;
-	}
 	
 	@Override
 	public void run () {
@@ -96,11 +90,8 @@ public class StorePage extends Thread implements MessageListener {
  
 			fop.write(contentInBytes);
 			fop.flush();
-			fop.close();
-			
-			// Salvataggio della directory su S3
-			myAWS.uploadS3File(newPath.replace("\\index.html",""));			
-		} catch (IOException  e) {
+			fop.close();			
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		

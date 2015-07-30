@@ -50,23 +50,16 @@ public class Client implements MessageListener {
 				
 			// Invio alla coda
 			producer.send(queue01, url);
-			// Verifico lunghezza della coda
-			/*if(Support.checkQueueOverload("LoadURLQueue", 0)){ // Se è overloaded 
-				System.out.println("Overload -> Creo una nuova istanza");
-				LoadURL.main(null);
-			}*/
 		}		
 		
 	}
 	
 	@Override
 	public void onMessage(Message msg) {
-		// TODO Auto-generated method stub
 		try {
 			String commMessage = msg.getBody(String.class);
 			System.out.println("CLIENT: Received -> url(" + commMessage+")");
 		} catch (JMSException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 	}
