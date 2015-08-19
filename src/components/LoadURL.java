@@ -1,4 +1,4 @@
-package loadUrl;
+package components;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;

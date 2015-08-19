@@ -12,11 +12,11 @@ import javax.jms.QueueBrowser;
 import javax.naming.Context;
 import javax.naming.NamingException;
 
-import downloadImages.DownloadImages;
-import parsePage.ParsePage;
-import storePage.StorePage;
-import loadUrl.LoadURL;
-import modifyPage.ModifyPage;
+import components.DownloadImages;
+import components.LoadURL;
+import components.ModifyPage;
+import components.ParsePage;
+import components.StorePage;
 
 public class Monitoring {
 	

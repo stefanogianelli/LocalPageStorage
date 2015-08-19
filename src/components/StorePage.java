@@ -1,4 +1,4 @@
-package storePage;
+package components;
 
 import java.io.File;
 import java.io.FileOutputStream;

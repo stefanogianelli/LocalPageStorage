@@ -1,4 +1,4 @@
-package parsePage;
+package components;
 
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package downloadImages;
+package components;
 
 import java.io.File;
 import java.io.FileOutputStream;
