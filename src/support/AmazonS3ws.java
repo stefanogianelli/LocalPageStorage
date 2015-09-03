@@ -19,12 +19,12 @@ public class AmazonS3ws {
 	
 	public void uploadS3File (String pathIndexSito) {
 		//System.out.println("Salvataggio index file su S3...");
-		tx.upload(bucketName, pathIndexSito + "/index.html", new File(pathIndexSito+"/index.html"));
+		tx.upload(bucketName, pathIndexSito.replace("SITI\\", "") + "/index.html", new File(pathIndexSito+"/index.html"));
 	}
 	
 	public void uploadS3Img(String locPath,String nomeFile, String fileLocalLocation){
 		//System.out.println("Salvataggio immagine " + nomeFile + " su S3...");
-		tx.upload(bucketName, locPath + "/images/" + nomeFile, new File(fileLocalLocation));
+		tx.upload(bucketName, locPath.replace("SITI\\", "") + "/images/" + nomeFile, new File(fileLocalLocation));
 	}	
 	
 	public void uploadS3Folder (String path) {
